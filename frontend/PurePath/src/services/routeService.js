@@ -14,10 +14,12 @@ export const getRoute = async (start, end) => {
     params: {
       api_key: ORS_API_KEY,
       start: `${start[0]},${start[1]}`,
+     
       end: `${end[0]},${end[1]}`,
       geometry_format: "geojson",
     },
   });
-
+  console.log(response)
   return response.data;
 };
+
