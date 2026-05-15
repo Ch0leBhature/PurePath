@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { getLocData } from "../services/routeService";
+import { getRoute } from "../controllers/route.controller.js";
 
 const router=Router();
 
-router.post("/api",getLocData);
+router.post("/getRoute",getRoute);
 
 export default router;

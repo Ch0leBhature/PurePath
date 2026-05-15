@@ -10,6 +10,9 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
   const [routeCoords, setRouteCoords] = useState([]);
+  
+  const [source,setSource] = useState("");
+  const [destination,setDestination] = useState
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -53,8 +56,8 @@ function App() {
       ];
 
       try {
-        const data = await getRoute([88.3639, 22.5726], [88.3800, 22.5800]);
-        const geojsonCoords = data.features?.[0]?.geometry?.coordinates;
+        const data = await getRoute([88.3639, 22.5726], [88.3800,22.5800]);
+        const geojsonCoords = data.coordinates
 
         if (geojsonCoords?.length) {
           setRoutes([
@@ -64,7 +67,7 @@ function App() {
               eta: "22 mins",
               exposure: "Moderate",
               color: "#6abaf2",
-              coordinates: geojsonCoords.map(([lon, lat]) => [lat, lon]),
+              coordinates: geojsonCoords
             },
           ]);
         } else {
@@ -94,7 +97,13 @@ function App() {
       {/* MAIN */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         {/* TOPBAR */}
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <Topbar 
+          onMenuClick={() => setSidebarOpen(true)}  
+          source={source}
+          setSource={setSource}
+          destination={destination}
+          setDestination={setDestination}
+        />
 
         {/* MAP + ROUTES */}
         <div className="grid grid-cols-1 xl:grid-cols-[3fr_1fr] gap-4 md:gap-6">

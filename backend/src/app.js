@@ -13,4 +13,8 @@ app.get("/",(req,res)=>{
   res.json({message:"backend running"})
 })
 
+//router
+import routeRouter from "./routes/route.Routes.js"
+app.use("/api/route",routeRouter)
+
 export {app}
