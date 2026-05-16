@@ -20,13 +20,13 @@ const RouteCards = ({ routes }) => {
           </h3>
 
           <p className="text-gray-400 mb-2 text-sm md:text-base">
-            AQI: {route.aqi}
+            AQI-Level: {route.aqi}
           </p>
 
-          <p className="text-gray-400 mb-2 text-sm md:text-base">
+        {/* <p className="text-gray-400 mb-2 text-sm md:text-base">
             ETA: {route.eta}
-          </p>
-
+          </p>  */}
+  
           <span className="text-gray-300 text-sm md:text-base">
             Exposure: {route.exposure}
           </span>

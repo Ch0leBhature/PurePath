@@ -1,9 +1,15 @@
 import axios from "axios";
 
-const ORS_API_URL = "https://api.openrouteservice.org/v2/directions/driving-car";
 
-export const getRoute = async (start, end) => {
-  const response = await axios.post("http://localhost:5000/api/route/getRoute", { start, end });
-  return response.data;
+const getRoute = async (start, end) => {
+  try{
+    const response = await axios.post("http://localhost:5000/api/route/api", { start, end });
+    return response.data;
+  }catch(err){
+    console.log("error in getting response from backend",err)
+    throw err
+  }
 };
 
+
+export {getRoute}

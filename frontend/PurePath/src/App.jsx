@@ -9,7 +9,6 @@ import {geoCodedData} from "./services/geoCodeService"
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
-  const [routeCoords, setRouteCoords] = useState([]);
   
   const [source,setSource] = useState("");
   const [destination,setDestination] = useState("")
@@ -25,6 +24,19 @@ function App() {
       console.log("dest: ",destCoords);
       
       const data = await getRoute(srcCoords, destCoords);
+      
+      if (data?.coordinates?.length) {
+        let routeColor ="#8ccf7e";
+        if (data.exposure ==="Moderate"){
+          routeColor ="#e5c76b";
+
+        }
+        
+        else if (data.exposure ==="High"){
+          routeColor ="#e67e80";
+        }
+
+
       console.log("route response", data);
       const geojsonCoords = data?.coordinates;
 
@@ -32,14 +44,14 @@ function App() {
           setRoutes([
             {
               name: "Live Route",
-              aqi: 72,
-              eta: "22 mins",
-              exposure: "Moderate",
-              color: "#6abaf2",
+              aqi: data.avgAqi,
+              exposure: data.exposure,
+              color: routeColor,
               coordinates: geojsonCoords
             },
           ]);
         }
+      }
     }
     catch (error) {
       console.error("Error fetching routes:", error);
