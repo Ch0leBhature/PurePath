@@ -1,4 +1,4 @@
-const Topbar = ({ onMenuClick }) => {
+const Topbar = ({ onMenuClick, source, setSource, destination, setDestination, handleAnalyzeButton}) => {
   return (
     <div className="mb-6 md:mb-8">
       {/* Mobile Menu Button */}
@@ -26,15 +26,29 @@ const Topbar = ({ onMenuClick }) => {
             type="text"
             placeholder="Source"
             className="bg-[#232a2d] border border-[#2d3437] text-white px-4 py-3 rounded-xl outline-none w-full sm:w-[220px] lg:w-[220px]"
+            value={source}  
+            onChange={(event)=>{
+              setSource(event.target.value)
+            }}
+    
           />
 
           <input
             type="text"
             placeholder="Destination"
             className="bg-[#232a2d] border border-[#2d3437] text-white px-4 py-3 rounded-xl outline-none w-full sm:w-[220px] lg:w-[220px]"
+            value={destination}  
+            onChange={(event)=>{
+              setDestination(event.target.value)
+            }}
+ 
           />
 
-          <button className="bg-[#8ccf7e] hover:bg-[#7bc56d] text-black font-semibold px-6 py-3 rounded-xl transition w-full sm:w-auto">
+          <button 
+            onClick={handleAnalyzeButton}  
+            className="bg-[#8ccf7e] hover:bg-[#7bc56d] text-black font-semibold px-6 py-3 rounded-xl transition w-full sm:w-auto">
+  
+          
             Analyze Route
           </button>
 

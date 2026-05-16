@@ -5,59 +5,28 @@ import Map from "./components/Map";
 import RouteCards from "./components/RouteCards";
 import AiCard from "./components/AiCard";
 import { getRoute } from "./services/routeService";
-
+import {geoCodedData} from "./services/geoCodeService" 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
   const [routeCoords, setRouteCoords] = useState([]);
   
   const [source,setSource] = useState("");
-  const [destination,setDestination] = useState
+  const [destination,setDestination] = useState("")
+  console.log("helo?!") 
 
-  useEffect(() => {
-    const fetchRoutes = async () => {
-      const mockRoutes = [
-        {
-          name: "Clean Route",
-          aqi: 62,
-          eta: "28 mins",
-          exposure: "Low",
-          color: "#8ccf7e",
-          coordinates: [
-            [22.5726, 88.3639],
-            [22.5750, 88.3700],
-            [22.5800, 88.3800],
-          ],
-        },
-        {
-          name: "Balanced Route",
-          aqi: 89,
-          eta: "24 mins",
-          exposure: "Moderate",
-          color: "#e5c76b",
-          coordinates: [
-            [22.5726, 88.3639],
-            [22.5700, 88.3550],
-            [22.5680, 88.3480],
-          ],
-        },
-        {
-          name: "Fastest Route",
-          aqi: 132,
-          eta: "19 mins",
-          exposure: "High",
-          color: "#e67e80",
-          coordinates: [
-            [22.5726, 88.3639],
-            [22.5740, 88.3650],
-            [22.5800, 88.3800],
-          ],
-        },
-      ];
 
-      try {
-        const data = await getRoute([88.3639, 22.5726], [88.3800,22.5800]);
-        const geojsonCoords = data.coordinates
+
+  const handleAnalyzeButton = async () =>{
+    try{
+      const srcCoords = await geoCodedData(source);
+      const destCoords = await geoCodedData(destination);
+      console.log("src: ",srcCoords);
+      console.log("dest: ",destCoords);
+      
+      const data = await getRoute(srcCoords, destCoords);
+      console.log("route response", data);
+      const geojsonCoords = data?.coordinates;
 
         if (geojsonCoords?.length) {
           setRoutes([
@@ -70,25 +39,18 @@ function App() {
               coordinates: geojsonCoords
             },
           ]);
-        } else {
-          setRoutes(mockRoutes);
         }
-      } catch (error) {
-        console.error("Error fetching routes:", error);
-        setRoutes(mockRoutes);
-      }
-    };
+    }
+    catch (error) {
+      console.error("Error fetching routes:", error);
+    }
 
-    fetchRoutes();
-  }, []);
+     
+        
+  };
 
-  // Uncomment and modify when API key is available
-  // const fetchRoute = async function(){
-  //   const data = await getRoute([88.3639, 22.5726], [88.3800, 22.5800]);
-  //   const coords = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-  //   setRouteCoords([coords]);
-  // }
 
+  
   return (
     <div className="flex min-h-screen bg-[#141b1e] text-white">
       {/* SIDEBAR */}
@@ -98,11 +60,12 @@ function App() {
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         {/* TOPBAR */}
         <Topbar 
-          onMenuClick={() => setSidebarOpen(true)}  
+          onMenuClick={() => setSidebarOpen(true)} 
           source={source}
           setSource={setSource}
           destination={destination}
           setDestination={setDestination}
+          handleAnalyzeButton={handleAnalyzeButton}
         />
 
         {/* MAP + ROUTES */}

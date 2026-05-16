@@ -15,6 +15,10 @@ const getLocData=async(start, end) => {
           start,
           end,
         ],
+        radiuses:
+        [
+          1000,1000,
+        ]
       },
       {
         headers:

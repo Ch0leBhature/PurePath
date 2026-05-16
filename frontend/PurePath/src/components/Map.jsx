@@ -1,38 +1,86 @@
+import L from "leaflet";
+
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+
 import {
   MapContainer,
   TileLayer,
   Polyline,
   Marker,
   Popup,
+  useMap,
 } from "react-leaflet";
+import { useEffect } from "react";
 
 function Map({ routes = [] }) {
-  // Default source and destination if no routes
-  const source = [22.5726, 88.3639];
-  const destination = routes.length > 0 ? routes[0].coordinates[routes[0].coordinates.length - 1] : [22.5800, 88.3800];
+
+  const source = routes[0]?.coordinates[0];
+
+  const destination =
+    routes[0]?.coordinates[
+      routes[0]?.coordinates.length - 1
+    ];
+
+  const defaultCenter = [28.6139, 77.2090];
+
+  function MapUpdater({ routes }) {
+    const map = useMap();
+
+    useEffect(() => {
+      const coords = routes[0]?.coordinates;
+      if (coords && Array.isArray(coords) && coords.length > 0) {
+        try {
+          if (coords.length === 1) {
+            map.setView(coords[0], 12);
+          } else {
+            map.fitBounds(coords, { padding: [40, 40] });
+          }
+        } catch (e) {
+          console.error("MapUpdater error", e);
+        }
+      } else {
+        map.setView(defaultCenter, 12);
+      }
+    }, [routes, map]);
+
+    return null;
+  }
 
   return (
     <div className="h-[520px] rounded-3xl overflow-hidden border border-[#2d3437]">
       <MapContainer
-        center={source}
-        zoom={20}
+        center={source || defaultCenter}
+        zoom={12}
         className="h-full w-full"
       >
+        <MapUpdater routes={routes} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
-        {/* SOURCE MARKER */}
-        <Marker position={source}>
-          <Popup>Source</Popup>
-        </Marker>
+        {source && (
+          <Marker position={source}>
+            <Popup>Source</Popup>
+          </Marker>
+        )}
 
-        {/* DESTINATION MARKER */}
-        <Marker position={destination}>
-          <Popup>Destination</Popup>
-        </Marker>
+        {destination && (
+          <Marker position={destination}>
+            <Popup>Destination</Popup>
+          </Marker>
+        )}
 
-        {/* DYNAMIC ROUTES */}
         {routes.map((route, index) => (
           <Polyline
             key={index}
