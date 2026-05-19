@@ -1,4 +1,4 @@
-const Topbar = ({ onMenuClick, source, setSource, destination, setDestination, handleAnalyzeButton}) => {
+const Topbar = ({ onMenuClick, source, setSource, destination, setDestination, handleAnalyzeButton, loading}) => {
   return (
     <div className="mb-6 md:mb-8">
       {/* Mobile Menu Button */}
@@ -45,11 +45,13 @@ const Topbar = ({ onMenuClick, source, setSource, destination, setDestination, h
           />
 
           <button 
-            onClick={handleAnalyzeButton}  
+            onClick={handleAnalyzeButton} 
+            disabled={loading}
             className="bg-[#8ccf7e] hover:bg-[#7bc56d] text-black font-semibold px-6 py-3 rounded-xl transition w-full sm:w-auto">
   
-          
-            Analyze Route
+            {
+              loading ? "Analyzing... " : "Analyze Route"
+            } 
           </button>
 
         </div>

@@ -43,17 +43,21 @@ const getAqi = async (req,res) =>{
 
     const geoJsonCoords = data.features?.[0]?.geometry?.coordinates;
     const leafletCoords = geoJsonCoords.map(([lng, lat]) => [lat, lng]);
-    
-    const sampleCoords = leafletCoords.filter((_,item)=>item%20 ===0)
+   
+    const desiredNumber = 30;
+    const step = Math.max(1,Math.ceil(leafletCoords.length/desiredNumber));
 
-    const aqiValues=[];
+    const sampleCoords = leafletCoords.filter((_,item)=>item%step ===0)
 
-    for(const coords of sampleCoords){
-      const [lat,lon] = coords
-      const aqiData = await getAiqData(lat,lon)
-      const aqi = aqiData.list[0].main.aqi
-      aqiValues.push(aqi);
-    }
+
+    const aqiPromises = sampleCoords.map ( async(coords) => {
+        const [lat,lon] = coords
+        const aqiData = await getAiqData(lat,lon)
+        return aqiData.list[0].main.aqi
+      }
+    );
+    console.log("sampleCoords : ",sampleCoords.length)
+    const aqiValues=await Promise.all(aqiPromises); 
 
     const totalAqi = aqiValues.reduce((sum,value)=>{
       return sum=sum+value;

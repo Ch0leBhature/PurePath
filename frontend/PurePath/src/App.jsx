@@ -13,11 +13,12 @@ function App() {
   const [source,setSource] = useState("");
   const [destination,setDestination] = useState("")
   console.log("helo?!") 
-
+  const [loading,setLoading]= useState(false);
 
 
   const handleAnalyzeButton = async () =>{
     try{
+      setLoading(true);
       const srcCoords = await geoCodedData(source);
       const destCoords = await geoCodedData(destination);
       console.log("src: ",srcCoords);
@@ -55,6 +56,8 @@ function App() {
     }
     catch (error) {
       console.error("Error fetching routes:", error);
+    }finally{
+      setLoading(false)
     }
 
      
@@ -78,6 +81,7 @@ function App() {
           destination={destination}
           setDestination={setDestination}
           handleAnalyzeButton={handleAnalyzeButton}
+          loading={loading}
         />
 
         {/* MAP + ROUTES */}
