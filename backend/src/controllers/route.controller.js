@@ -21,7 +21,8 @@ const getRoute = async (req, res) => {
     
     const leafletCoords = geoJsonCoords.map(([lng, lat]) => [lat, lng]);
 
-    
+    console.log("req.bdy: ",req.body)
+
     return res.status(200).json({ coordinates: leafletCoords });
   
 
@@ -66,19 +67,53 @@ const getAqi = async (req,res) =>{
     const avgAqi = totalAqi/aqiValues.length
 
 
-    let exposure=""
-    if (avgAqi <= 2) {
-      exposure = "Low";
+    let exposure = "";
+    let color = "";
+
+    if (avgAqi <= 1) {
+
+      exposure = "Good";
+      color = "#00e400";
+
+    }
+    else if (avgAqi <= 2) {
+
+      exposure = "Fair";
+      color = "#a3ff00";
+
     }
     else if (avgAqi <= 3) {
+
       exposure = "Moderate";
+      color = "#ffff00";
+
+    }
+    else if (avgAqi <= 4) {
+
+      exposure = "Poor";
+      color = "#ff7e00";
+
     }
     else {
-      exposure = "High";
-    }
 
+      exposure = "Very Poor";
+      color = "#ff0000";
+
+    }
     
-    return res.status(200).json({coordinates:leafletCoords,avgAqi,exposure})
+
+    //eta
+    
+    const duration =data.features[0].properties.segments[0].duration;
+
+    const distance =data.features[0].properties.segments[0].distance;
+
+    const minutes = Math.ceil(duration/60)
+
+    const formattedDistance = distance<1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(2)} km`
+
+    console.log(minutes)
+    return res.status(200).json({coordinates:leafletCoords,avgAqi,exposure,color,distance:formattedDistance,eta:minutes})
     
 
 

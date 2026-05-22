@@ -1,101 +1,91 @@
-import { useState, useEffect } from "react";
-import Sidebar from "./components/Sidebar";
-import Topbar from "./components/Topbar";
-import Map from "./components/Map";
-import RouteCards from "./components/RouteCards";
-import AiCard from "./components/AiCard";
+import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import SavedRoutes from "./pages/SavedRoutes";
 import { getRoute } from "./services/routeService";
-import {geoCodedData} from "./services/geoCodeService" 
+import { geoCodedData } from "./services/geoCodeService";
+import { saveRoute } from "./services/savedRouteService";
+
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
-  
-  const [source,setSource] = useState("");
-  const [destination,setDestination] = useState("")
-  console.log("helo?!") 
-  const [loading,setLoading]= useState(false);
 
+  const [source, setSource] = useState("");
+  const [destination, setDestination] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [savingRoute, setSavingRoute] = useState(false);
+  const [sourceSugg, setSourceSugg] = useState([]);
+  const [destinationSugg, setDestinationSugg] = useState([]);
 
-  const handleAnalyzeButton = async () =>{
-    try{
+  const handleAnalyzeButton = async () => {
+    try {
       setLoading(true);
       const srcCoords = await geoCodedData(source);
       const destCoords = await geoCodedData(destination);
-      console.log("src: ",srcCoords);
-      console.log("dest: ",destCoords);
-      
       const data = await getRoute(srcCoords, destCoords);
-      
+
       if (data?.coordinates?.length) {
-        let routeColor ="#8ccf7e";
-        if (data.exposure ==="Moderate"){
-          routeColor ="#e5c76b";
-
-        }
-        
-        else if (data.exposure ==="High"){
-          routeColor ="#e67e80";
-        }
-
-
-      console.log("route response", data);
-      const geojsonCoords = data?.coordinates;
-
-        if (geojsonCoords?.length) {
-          setRoutes([
-            {
-              name: "Live Route",
-              aqi: data.avgAqi,
-              exposure: data.exposure,
-              color: routeColor,
-              coordinates: geojsonCoords
-            },
-          ]);
-        }
+        setRoutes([
+          {
+            aqi: data.avgAqi,
+            exposure: data.exposure,
+            color: data.color,
+            coordinates: data.coordinates,
+            src: source,
+            dest: destination,
+            distance: data.distance,
+            eta: data.eta,
+          },
+        ]);
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error fetching routes:", error);
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
-
-     
-        
   };
 
+  const handleSaveRoute = async (route) => {
+    try {
+      setSavingRoute(true);
+      await saveRoute(route);
+      alert("Route saved successfully.");
+    } catch (error) {
+      console.error("Error saving route:", error);
+      alert("Unable to save route. Please try again.");
+    } finally {
+      setSavingRoute(false);
+    }
+  };
 
-  
   return (
-    <div className="flex min-h-screen bg-[#141b1e] text-white">
-      {/* SIDEBAR */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* MAIN */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        {/* TOPBAR */}
-        <Topbar 
-          onMenuClick={() => setSidebarOpen(true)} 
-          source={source}
-          setSource={setSource}
-          destination={destination}
-          setDestination={setDestination}
-          handleAnalyzeButton={handleAnalyzeButton}
-          loading={loading}
+    <div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Dashboard
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+              routes={routes}
+              setRoutes={setRoutes}
+              source={source}
+              setSource={setSource}
+              destination={destination}
+              setDestination={setDestination}
+              handleAnalyzeButton={handleAnalyzeButton}
+              handleSaveRoute={handleSaveRoute}
+              savingRoute={savingRoute}
+              loading={loading}
+              sourceSugg={sourceSugg}
+              setSourceSugg={setSourceSugg}
+              destinationSugg={destinationSugg}
+              setDestinationSugg={setDestinationSugg}
+            />
+          }
         />
-
-        {/* MAP + ROUTES */}
-        <div className="grid grid-cols-1 xl:grid-cols-[3fr_1fr] gap-4 md:gap-6">
-          {/* MAP */}
-          <Map routes={routes} />
-
-          {/* ROUTE CARDS */}
-          <RouteCards routes={routes} />
-        </div>
-
-        {/* AI CARD */}
-        <AiCard />
-      </main>
+        <Route path="/saved" element={<SavedRoutes />} />
+      </Routes>
     </div>
   );
 }

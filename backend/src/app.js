@@ -15,6 +15,8 @@ app.get("/",(req,res)=>{
 
 //router
 import routeRouter from "./routes/route.Routes.js"
-app.use("/api/route",routeRouter)
+import savedRouteRouter from "./routes/savedRoute.Routes.js"
+app.use("/api/route", routeRouter)
+app.use("/api/saved", savedRouteRouter)
 
 export {app}

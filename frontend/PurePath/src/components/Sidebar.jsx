@@ -1,3 +1,5 @@
+import { NavLink } from "react-router-dom";
+
 const Sidebar = ({ isOpen, onClose }) => {
   return (
     <>
@@ -10,14 +12,25 @@ const Sidebar = ({ isOpen, onClose }) => {
           </h1>
 
           <nav className="flex flex-col gap-4">
-            
-            <div className="bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                "px-4 py-4 rounded-xl cursor-pointer transition"
+              }
+            >
               Dashboard
-            </div>
+            </NavLink>
 
-            <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition">
+            <NavLink
+              to="/saved"
+              className={({ isActive }) =>
+                (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                "px-4 py-4 rounded-xl cursor-pointer transition"
+              }
+            >
               Saved Routes
-            </div>
+            </NavLink>
 
             <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition">
               Analytics
@@ -63,13 +76,25 @@ const Sidebar = ({ isOpen, onClose }) => {
 
               <nav className="flex flex-col gap-4">
                 
-                <div className="bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer">
+                <NavLink
+                  to="/"
+                  className={({ isActive }) =>
+                    (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                    "px-4 py-4 rounded-xl cursor-pointer transition"
+                  }
+                >
                   Dashboard
-                </div>
+                </NavLink>
 
-                <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition">
+                <NavLink
+                  to="/saved"
+                  className={({ isActive }) =>
+                    (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                    "px-4 py-4 rounded-xl cursor-pointer transition"
+                  }
+                >
                   Saved Routes
-                </div>
+                </NavLink>
 
                 <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition">
                   Analytics

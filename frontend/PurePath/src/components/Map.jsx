@@ -58,7 +58,7 @@ function Map({ routes = [] }) {
   }
 
   return (
-    <div className="h-[520px] rounded-3xl overflow-hidden border border-[#2d3437]">
+    <div className="relative z-0 h-[520px] rounded-3xl overflow-hidden border border-[#2d3437]">
       <MapContainer
         center={source || defaultCenter}
         zoom={12}
