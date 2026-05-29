@@ -1,7 +1,8 @@
 import axios from "axios";
 import { configDotenv } from "dotenv";
+
 configDotenv({
-  path: "./.env"
+  path: new URL("../.env", import.meta.url).pathname,
 })
 
 const getAiqData = async (lat,lon)=>{

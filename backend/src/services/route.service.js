@@ -1,7 +1,8 @@
 import axios from "axios";
 import { configDotenv } from "dotenv";
+
 configDotenv({
-  path:'./.env'
+  path: new URL("../.env", import.meta.url).pathname,
 })
 const ORS_API_URL = "https://api.openrouteservice.org/v2/directions/driving-car/geojson";
 

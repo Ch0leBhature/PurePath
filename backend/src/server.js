@@ -1,8 +1,9 @@
 import { configDotenv } from "dotenv";
 import { app } from "./app.js";
 import connectDB from "./db/index.js";
+
 configDotenv({
-  path:'./.env'
+  path: new URL("../.env", import.meta.url).pathname,
 })
 
 connectDB()

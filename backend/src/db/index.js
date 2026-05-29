@@ -1,7 +1,8 @@
 import { configDotenv } from "dotenv";
 import mongoose, { connect } from "mongoose";
+
 configDotenv({
-  path:'./.env'
+  path: new URL("../.env", import.meta.url).pathname,
 })
 const DB_NAME = "PurePath"
 

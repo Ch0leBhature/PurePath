@@ -14,6 +14,8 @@ const routeSchema = new mongoose.Schema({
 
   distance: String,
 
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
+
 });
 
 const Route =mongoose.model("Route",routeSchema);

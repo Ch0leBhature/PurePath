@@ -1,111 +1,157 @@
-import User from "../models/user.model.js";
+import {User} from "../models/user.model.js";
 
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.find().select("-password");
-    return res.status(200).json(users);
-  } catch (error) {
-    console.error("getUsers error", error);
-    return res.status(500).json({ message: "Internal server error" });
+
+const generateAccessAndRefreshTokens = async function(userId){
+  try
+  {
+    const user=await User.findById(userId)
+    const accessToken=user.generateAccessToken();
+    const refreshToken=user.generateRefreshToken();
+    user.refreshToken=refreshToken
+    console.log(
+      process.env.ACCESS_TOKEN_SECRET
+    );
+
+    console.log(
+      process.env.REFRESH_TOKEN_SECRET
+    ); 
+    await user.save({validateBeforeSave:false})
+    return {accessToken,refreshToken};
+  }catch(error)
+  {
+    throw new Error(
+      "something went wrond while generating access or refresh tokens"
+    )
   }
-};
 
-const getUserById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await User.findById(id).select("-password");
+}
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+//todo
+//1.get data from frontend, check for empty    *
+//2.check if already exists                    *
+//3.if not create it
+//4.remove password and refresh token from response
+//5.check for usr creation
+//6.return response
 
-    return res.status(200).json(user);
-  } catch (error) {
-    console.error("getUserById error", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const getUserByEmail = async (req, res) => {
-  try {
-    const { email } = req.params;
-    const user = await User.findOne({ email }).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.status(200).json(user);
-  } catch (error) {
-    console.error("getUserByEmail error", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const createUser = async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-
-    if (!username || !email || !password) {
+const registerUser = async function(req,res){
+  try
+  {
+    const {username,email,password} = req.body;
+    
+    if ([username, email, password].some((field) => !field || field.toString().trim() === "")) {
       return res.status(400).json({ message: "username, email, and password are required" });
     }
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(409).json({ message: "A user with that email already exists" });
+    const usrExists=await User.findOne({
+      $or:[{username},{email}]
+    })
+
+    if(usrExists){
+      return res.status(409).json({message:"username or email already exits"})
     }
 
-    const user = await User.create({ username, email, password });
-    const userObj = user.toObject();
-    delete userObj.password;
-
-    return res.status(201).json(userObj);
-  } catch (error) {
-    console.error("createUser error", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const updateUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-
-    if (updates.password) {
-      delete updates.password;
-    }
-
-    const user = await User.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-      fields: { password: 0 },
+    const user = await User.create({
+      username: username.toString().trim(),
+      email: email.toString().trim(),
+      password,
     });
+    
+    const usrCreated = await User.findById(user._id).select("-password -refreshToken")
+    
+    if(!usrCreated){
+      return res.status(500).json({message:"something went wrong while creating the user"})
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    }
+    
+    return res.status(201).json({
+      message:"User created successfully",
+      user:usrCreated
+    })
+
+  }catch(error)
+  {
+    console.log("registration Error", error)
+    
+    return res.status(500).json({
+      message:"Internal Server Error"
+    });
+  
+  }
+}
+
+//take data from frontend
+//check for empty data
+//check the user exists or not
+//if found check password
+//if valid then generate tokens
+//make a user response remove pass and refresh tokens
+//send cookies
+
+const loginUser = async function(req,res) {
+  try
+  {
+    
+    const {username,email,password}=req.body;
+
+        
+    if(!username && !email){
+      return res.status(400).json({message:"username or email fields are required"})
+    }
+    if(!password){
+      return res.status(400).json({message:"password is required"})
+    }
+    const userFound = await User.findOne({
+      $or: [{username},{email}]
+    }) 
+    if(!userFound){
+      return res.status(404).json({message: "user does not exists"});
     }
 
-    return res.status(200).json(user);
-  } catch (error) {
-    console.error("updateUser error", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deleted = await User.findByIdAndDelete(id);
-
-    if (!deleted) {
-      return res.status(404).json({ message: "User not found" });
+    const isPassValid = await userFound.isPasswordCorrect(password);
+    if(!isPassValid){
+      return res.status(404).json({message:"Invalid Credentials"})
     }
+    const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(userFound._id);
+    const loggedInUser= await User.findById(userFound._id).select("-password -refreshToken")
 
-    return res.status(200).json({ message: "User deleted successfully" });
-  } catch (error) {
-    console.error("deleteUser error", error);
-    return res.status(500).json({ message: "Internal server error" });
+    const options={
+      httpOnly:true,
+      // secure:true,
+    }   
+   
+    return res
+    .status(200)
+    .cookie(
+      "accessToken",
+      accessToken,
+      options
+    )
+    .cookie(
+      "refreshToken",
+      refreshToken,
+      options
+    )
+    .json({
+
+      user: loggedInUser,
+
+      accessToken,
+      refreshToken,
+
+      message:
+        "user logged in successfully"
+
+    });
+  }catch(error)
+  {
+    console.log("login error",error);
+
+    return res.status(500).json({
+      message:"Internal server error"
+    });
   }
-};
+}
 
-export { getUsers, getUserById, getUserByEmail, createUser, updateUser, deleteUser };
+
+export { registerUser,loginUser };
