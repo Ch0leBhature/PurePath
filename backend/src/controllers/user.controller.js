@@ -91,7 +91,7 @@ const registerUser = async function(req,res){
 const loginUser = async function(req,res) {
   try
   {
-    
+    console.log("LOGIN HIT") 
     const {username,email,password}=req.body;
 
         
