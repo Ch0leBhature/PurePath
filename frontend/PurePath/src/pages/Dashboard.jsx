@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import Map from "../components/Map";
@@ -23,15 +23,35 @@ const Dashboard = ({
   setDestinationSugg,
   routes,
   setRoutes,
+  analyzeRoute,
 }) => {
   const location = useLocation();
-
+  const navigate = useNavigate();
   useEffect(() => {
-    const savedRoute = location.state?.route;
-    if (savedRoute) {
-      setSource(savedRoute.src || savedRoute.source || "");
-      setDestination(savedRoute.dest || savedRoute.destination || "");
-      setRoutes([savedRoute]);
+    
+    console.log("LOCATION:", location);
+    console.log("STATE:", location.state);
+    const src=location?.state?.source;
+    const dest=location?.state?.destination;
+    if (src && dest) {
+      
+      setSource(src);
+      setDestination(dest);
+      
+      const loadRoute = async ()=>{
+        await analyzeRoute
+        (
+          src,
+          dest,
+        )
+      }
+      loadRoute();
+      
+      navigate(location.pathname, {
+        replace: true,
+        state: null,
+      });
+    
     }
   }, [location.state, setSource, setDestination, setRoutes]);
 

@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { getSavedRoutes, deleteRoute } from "../services/savedRouteService";
 
 const SavedRoutes = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+
+  const handleUnauthorized = (err) => {
+    if (err?.response?.status === 401) {
+      logout();
+      navigate("/login");
+      return true;
+    }
+    return false;
+  };
 
   const fetchRoutes = async () => {
     try {
@@ -16,6 +27,7 @@ const SavedRoutes = () => {
       const savedRoutes = await getSavedRoutes();
       setRoutes(savedRoutes);
     } catch (err) {
+      if (handleUnauthorized(err)) return;
       console.error("Failed to load saved routes", err);
       setError("Unable to load saved routes.");
     } finally {
@@ -29,6 +41,7 @@ const SavedRoutes = () => {
       await deleteRoute(id);
       setRoutes((current) => current.filter((route) => route._id !== id));
     } catch (err) {
+      if (handleUnauthorized(err)) return;
       console.error("Failed to delete saved route", err);
       setError("Unable to delete saved route.");
     } finally {
@@ -39,23 +52,23 @@ const SavedRoutes = () => {
   useEffect(() => {
     fetchRoutes();
   }, []);
-
+  
   return (
     <div className="min-h-screen bg-[#141b1e] text-white px-4 py-8 md:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-4xl font-bold">Saved Routes</h1>
-              <p className="text-gray-400 mt-2">Viewing saved routes for the current user. Select any route to open it on the dashboard map.</p>
-            </div>
-            <button
-              type="button"
-              onClick={fetchRoutes}
-              className="rounded-2xl bg-[#8ccf7e] px-5 py-3 text-black font-semibold hover:bg-[#7bc56d] transition"
-            >
-              Refresh
-            </button>
+          <div>
+            <h1 className="text-4xl font-bold">Saved Routes</h1>
+            <p className="text-gray-400 mt-2">Viewing saved routes for the current user. Select any route to open it on the dashboard map.</p>
           </div>
+          <button
+            type="button"
+            onClick={fetchRoutes}
+            className="rounded-2xl bg-[#8ccf7e] px-5 py-3 text-black font-semibold hover:bg-[#7bc56d] transition"
+          >
+            Refresh
+          </button>
+        </div>
         {loading ? (
           <div className="rounded-3xl border border-[#2d3437] bg-[#1b2225] p-8 text-center text-gray-300">
             Loading saved routes...
@@ -92,7 +105,7 @@ const SavedRoutes = () => {
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <button
                     type="button"
-                    onClick={() => navigate("/", { state: { route } })}
+                    onClick={() => navigate("/", { state: { source:route.source, destination:route.destination } })}
                     className="rounded-2xl border border-[#8ccf7e] bg-transparent px-4 py-3 text-sm font-semibold text-[#8ccf7e] hover:bg-[#8ccf7e] hover:text-black transition"
                   >
                     View on Dashboard

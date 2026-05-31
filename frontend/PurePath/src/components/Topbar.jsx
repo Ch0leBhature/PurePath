@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { getSuggestions } from "../services/autoCompleteService";
+import { useState, useEffect } from "react";
+// import { getSuggestions } from "../services/autoCompleteService";
 
 const Topbar = ({
   onMenuClick,
@@ -18,26 +18,45 @@ const Topbar = ({
 
   const getSuggestionLabel = (place) => place?.properties?.label || place?.text || "";
     
-  //used this function commomly for setting both source and destination
-  const fetchSuggestions = async (query, setSuggestions) => {
-    if (!query || query.length < 3) {
-      setSuggestions([]);
-      return;
-    }
+  // Autocomplete is disabled temporarily because nomitium was blocking the requests.
+  //const fetchSuggestions = async (query, setSuggestions) => {
+  //  if (!query || query.length < 3) {
+  //    setSuggestions([]);
+  //    return;
+  //  }
+  //
+  //  const result = await getSuggestions(query);
+  //  setSuggestions(result);
+  //};
 
-    setSuggestions(await getSuggestions(query));
-  };
+  //useEffect(() => {
+  //  const timer = setTimeout(async () => {
+  //    fetchSuggestions(source, setSourceSugg);
+  //  }, 350);
+  //
+  //  return () => {
+  //    clearTimeout(timer);
+  //  };
+  //}, [source]);
+  
+  //useEffect(() => {
+  //  const timer = setTimeout(async () => {
+  //    fetchSuggestions(destination, setDestinationSugg);
+  //  }, 350);
+  //
+  //  return () => {
+  //    clearTimeout(timer);
+  //  };
+  //}, [destination]);
 
   const handleSourceChange = async (event) => {
     const value = event.target.value;
     setSource(value);
-    await fetchSuggestions(value, setSourceSugg);
   };
 
   const handleDestinationChange = async (event) => {
     const value = event.target.value;
     setDestination(value);
-    await fetchSuggestions(value, setDestinationSugg);
   };
 
   const selectSuggestion = (place, setter, clearSuggestions) => {

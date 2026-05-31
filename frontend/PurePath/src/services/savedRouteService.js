@@ -1,19 +1,26 @@
-import axios from "axios";
-
-const API_BASE = "http://localhost:5000/api/saved";
+import apiClient from "./apiClient";
 
 const getSavedRoutes = async () => {
-  const response = await axios.get(API_BASE);
+  const response = await apiClient.get("/api/saved");
   return response.data;
 };
 
 const saveRoute = async (route) => {
-  const response = await axios.post(API_BASE, route);
+  const payload = {
+    source: route.src || route.source,
+    destination: route.dest || route.destination,
+    aqi: route.aqi,
+    exposure: route.exposure,
+    eta: route.eta,
+    distance: route.distance,
+  };
+
+  const response = await apiClient.post("/api/saved/save", payload);
   return response.data;
 };
 
 const deleteRoute = async (id) => {
-  const response = await axios.delete(`${API_BASE}/${id}`);
+  const response = await apiClient.delete(`/api/saved/${id}`);
   return response.data;
 };
 

@@ -25,11 +25,11 @@ import { useEffect } from "react";
 
 function Map({ routes = [] }) {
 
-  const source = routes[0]?.coordinates[0];
+  const source = routes[0]?.coordinates?.[0];
 
   const destination =
-    routes[0]?.coordinates[
-      routes[0]?.coordinates.length - 1
+    routes[0]?.coordinates?.[
+      routes[0]?.coordinates?.length - 1
     ];
 
   const defaultCenter = [28.6139, 77.2090];

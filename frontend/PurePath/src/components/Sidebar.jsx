@@ -1,6 +1,15 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -31,6 +40,38 @@ const Sidebar = ({ isOpen, onClose }) => {
             >
               Saved Routes
             </NavLink>
+
+            {user ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-left px-4 py-4 rounded-xl bg-[#232a2d] text-white font-semibold transition hover:bg-[#2d3437]"
+              >
+                Logout
+              </button>
+            ) : (
+              <>
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                    "px-4 py-4 rounded-xl cursor-pointer transition"
+                  }
+                >
+                  Login
+                </NavLink>
+
+                <NavLink
+                  to="/register"
+                  className={({ isActive }) =>
+                    (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                    "px-4 py-4 rounded-xl cursor-pointer transition"
+                  }
+                >
+                  Register
+                </NavLink>
+              </>
+            )}
 
             <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition">
               Analytics
@@ -95,6 +136,38 @@ const Sidebar = ({ isOpen, onClose }) => {
                 >
                   Saved Routes
                 </NavLink>
+
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="text-left px-4 py-4 rounded-xl bg-[#232a2d] text-white font-semibold transition hover:bg-[#2d3437]"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <>
+                    <NavLink
+                      to="/login"
+                      className={({ isActive }) =>
+                        (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                        "px-4 py-4 rounded-xl cursor-pointer transition"
+                      }
+                    >
+                      Login
+                    </NavLink>
+
+                    <NavLink
+                      to="/register"
+                      className={({ isActive }) =>
+                        (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+                        "px-4 py-4 rounded-xl cursor-pointer transition"
+                      }
+                    >
+                      Register
+                    </NavLink>
+                  </>
+                )}
 
                 <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition">
                   Analytics
