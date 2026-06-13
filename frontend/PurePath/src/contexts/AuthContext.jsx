@@ -1,13 +1,12 @@
 import { createContext, useContext, useMemo, useState } from "react";
-import { loginUser, registerUser } from "../services/authService";
+import { loginUser, registerUser, logoutUser } from "../services/authService";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "purepath_auth_user";
 
 const getStoredUser = () => {
-  if (typeof window === "undefined") return null;
   const stored = localStorage.getItem(STORAGE_KEY);
-  console.log("localStorage: ",stored)
+  console.log("localStorage: ", stored);
   return stored ? JSON.parse(stored) : null;
 };
 
@@ -56,8 +55,14 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
-    storeUser(null);
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      storeUser(null);
+    }
   };
 
   const authState = useMemo(

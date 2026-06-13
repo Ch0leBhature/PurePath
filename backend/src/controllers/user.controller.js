@@ -154,4 +154,28 @@ const loginUser = async function(req,res) {
 }
 
 
-export { registerUser,loginUser };
+const logoutUser = async function(req, res) {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    await User.findByIdAndUpdate(userId, { refreshToken: null }, { new: true });
+
+    const options = {
+      httpOnly: true,
+    };
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json({ message: "User logged out successfully" });
+  } catch (error) {
+    console.log("logout error", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { registerUser, loginUser, logoutUser };

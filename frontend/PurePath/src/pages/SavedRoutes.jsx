@@ -11,9 +11,9 @@ const SavedRoutes = () => {
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
-  const handleUnauthorized = (err) => {
+  const handleUnauthorized = async (err) => {
     if (err?.response?.status === 401) {
-      logout();
+      await logout();
       navigate("/login");
       return true;
     }
@@ -27,7 +27,7 @@ const SavedRoutes = () => {
       const savedRoutes = await getSavedRoutes();
       setRoutes(savedRoutes);
     } catch (err) {
-      if (handleUnauthorized(err)) return;
+      if (await handleUnauthorized(err)) return;
       console.error("Failed to load saved routes", err);
       setError("Unable to load saved routes.");
     } finally {
@@ -41,7 +41,7 @@ const SavedRoutes = () => {
       await deleteRoute(id);
       setRoutes((current) => current.filter((route) => route._id !== id));
     } catch (err) {
-      if (handleUnauthorized(err)) return;
+      if (await handleUnauthorized(err)) return;
       console.error("Failed to delete saved route", err);
       setError("Unable to delete saved route.");
     } finally {

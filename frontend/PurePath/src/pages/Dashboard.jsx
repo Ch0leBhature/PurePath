@@ -29,8 +29,7 @@ const Dashboard = ({
   const navigate = useNavigate();
   useEffect(() => {
     
-    console.log("LOCATION:", location);
-    console.log("STATE:", location.state);
+    
     const src=location?.state?.source;
     const dest=location?.state?.destination;
     if (src && dest) {
