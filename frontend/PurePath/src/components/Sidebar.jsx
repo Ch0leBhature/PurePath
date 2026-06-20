@@ -156,19 +156,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               </nav>
             </div>
 
-            <div className="bg-[#232a2d] rounded-2xl p-6 border border-[#2d3437]">
-              <p className="text-[#859289]">
-                Current AQI
-              </p>
-
-              <h2 className="text-5xl font-bold text-[#83c092] my-4">
-                62
-              </h2>
-
-              <span className="text-[#d3c6aa]">
-                Healthy
-              </span>
-            </div>
+            
 
           </aside>
         </div>
