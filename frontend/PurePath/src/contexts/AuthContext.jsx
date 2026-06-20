@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   const storeUser = (userData) => {
+    console.log("AuthContext storeUser:", userData);
     if (userData) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
     } else {
