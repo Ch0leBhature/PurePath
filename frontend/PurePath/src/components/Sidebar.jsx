@@ -128,8 +128,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="text-left px-4 py-4 rounded-xl font-semibold transition"
-                    style={{ background: "#232a2d",color: theme.primary }}
+                    className="w-full text-left px-4 py-4 rounded-xl font-semibold transition duration-200 hover:translate-y-[-1px]"
+                    style={{ background: theme.surface, color: theme.primary, border: `1px solid ${theme.primary}` }}
                   >
                     Logout
                   </button>
@@ -137,37 +137,21 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <>
                     <NavLink
                       to="/login"
-                      className={({ isActive }) =>
-                        (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
-                        "px-4 py-4 rounded-xl cursor-pointer transition"
-                      }
+                      className={({ isActive }) => (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") + "px-4 py-4 rounded-xl cursor-pointer transition"}
+                      style={({ isActive }) => ({ color: theme.text })}
                     >
                       Login
                     </NavLink>
 
                     <NavLink
                       to="/register"
-                      className={({ isActive }) =>
-                        (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
-                        "px-4 py-4 rounded-xl cursor-pointer transition"
-                      }
+                      className={({ isActive }) => (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") + "px-4 py-4 rounded-xl cursor-pointer transition"}
+                      style={({ isActive }) => ({ color: theme.text })}
                     >
                       Register
                     </NavLink>
                   </>
                 )}
-
-                <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition" style={{ color: theme.muted }}>
-                  Analytics
-                </div>
-
-                <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition" style={{ color: theme.muted }}>
-                  AI Insights
-                </div>
-
-                <div className="hover:bg-[#232a2d] px-4 py-4 rounded-xl cursor-pointer transition" style={{ color: theme.muted }}>
-                  Settings
-                </div>
 
               </nav>
             </div>
