@@ -32,7 +32,37 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
   const destination = activeRoute?.coordinates?.[
     activeRoute?.coordinates?.length - 1
   ];
+  const sourceIcon = L.divIcon({
+      html: `
+        <div style="
+          width:18px;
+          height:18px;
+          background:#22c55e;
+          border:3px solid white;
+          border-radius:50%;
+          box-shadow:0 0 10px rgba(0,0,0,0.4);
+        "></div>
+      `,
+      className: "",
+      iconSize: [18, 18],
+      iconAnchor: [12, 12],
+  });
 
+  const destinationIcon = L.divIcon({
+    html: `
+      <div style="
+        width:18px;
+        height:18px;
+        background:#ef4444;
+        border:3px solid white;
+        border-radius:50%;
+        box-shadow:0 0 10px rgba(0,0,0,0.4);
+      "></div>
+    `,
+    className: "",
+    iconSize: [18, 18],
+    iconAnchor: [12, 12],
+  });
   const defaultCenter = [28.6139, 77.2090];
 
   const polylineRefs = useRef([]);
@@ -64,35 +94,7 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
       }
     }, [routes, activeRouteIndex, map]);
 
-    const sourceIcon = L.divIcon({
-      html: `
-        <div style="
-          width:18px;
-          height:18px;
-          background:#22c55e;
-          border:3px solid white;
-          border-radius:50%;
-          box-shadow:0 0 10px rgba(0,0,0,0.4);
-        "></div>
-      `,
-      className: "",
-      iconSize: [18, 18],
-    });
-
-    const destinationIcon = L.divIcon({
-      html: `
-        <div style="
-          width:18px;
-          height:18px;
-          background:#ef4444;
-          border:3px solid white;
-          border-radius:50%;
-          box-shadow:0 0 10px rgba(0,0,0,0.4);
-        "></div>
-      `,
-      className: "",
-      iconSize: [18, 18],
-    });
+    
     return null;
   }
 
