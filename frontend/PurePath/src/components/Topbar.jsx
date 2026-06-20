@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import theme from "../utils/theme";
-// import { getSuggestions } from "../services/autoCompleteService";
+import { getSuggestions } from "../services/autoCompleteService";
 
 const Topbar = ({
   onMenuClick,
@@ -24,36 +24,35 @@ const Topbar = ({
 
   const getSuggestionLabel = (place) => place?.properties?.label || place?.text || "";
     
-  // Autocomplete is disabled temporarily because nomitium was blocking the requests.
-  //const fetchSuggestions = async (query, setSuggestions) => {
-  //  if (!query || query.length < 3) {
-  //    setSuggestions([]);
-  //    return;
-  //  }
-  //
-  //  const result = await getSuggestions(query);
-  //  setSuggestions(result);
-  //};
+  const fetchSuggestions = async (query, setSuggestions) => {
+   if (!query || query.length < 3) {
+     setSuggestions([]);
+     return;
+   }
 
-  //useEffect(() => {
-  //  const timer = setTimeout(async () => {
-  //    fetchSuggestions(source, setSourceSugg);
-  //  }, 350);
-  //
-  //  return () => {
-  //    clearTimeout(timer);
-  //  };
-  //}, [source]);
+   const result = await getSuggestions(query);
+   setSuggestions(result);
+  };
+
+  useEffect(() => {
+   const timer = setTimeout(async () => {
+     fetchSuggestions(source, setSourceSugg);
+   }, 350);
+
+   return () => {
+     clearTimeout(timer);
+   };
+  }, [source]);
   
-  //useEffect(() => {
-  //  const timer = setTimeout(async () => {
-  //    fetchSuggestions(destination, setDestinationSugg);
-  //  }, 350);
-  //
-  //  return () => {
-  //    clearTimeout(timer);
-  //  };
-  //}, [destination]);
+  useEffect(() => {
+   const timer = setTimeout(async () => {
+     fetchSuggestions(destination, setDestinationSugg);
+   }, 350);
+
+   return () => {
+     clearTimeout(timer);
+   };
+  }, [destination]);
 
   const handleSourceChange = async (event) => {
     const value = event.target.value;
