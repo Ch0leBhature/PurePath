@@ -165,6 +165,9 @@ const logoutUser = async function(req, res) {
 
     const options = {
       httpOnly: true,
+      secure: true, // Set to true if using HTTPS
+      sameSite: "none",
+      
     };
 
     return res
