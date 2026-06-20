@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import theme from "../utils/theme";
 // import { getSuggestions } from "../services/autoCompleteService";
 
 const Topbar = ({
@@ -13,8 +14,13 @@ const Topbar = ({
   setDestinationSugg,
   sourceSugg,
   destinationSugg,
+  sourceError,
+  destinationError,
+  clearSourceError,
+  clearDestinationError,
 }) => {
   const [activeField, setActiveField] = useState("");
+  const [transportMode, setTransportMode] = useState("driving-car");
 
   const getSuggestionLabel = (place) => place?.properties?.label || place?.text || "";
     
@@ -52,11 +58,13 @@ const Topbar = ({
   const handleSourceChange = async (event) => {
     const value = event.target.value;
     setSource(value);
+    if (value && clearSourceError) clearSourceError();
   };
 
   const handleDestinationChange = async (event) => {
     const value = event.target.value;
     setDestination(value);
+    if (value && clearDestinationError) clearDestinationError();
   };
 
   const selectSuggestion = (place, setter, clearSuggestions) => {
@@ -99,8 +107,8 @@ const Topbar = ({
 
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 lg:gap-8">
         <div>
-          <h1 className="text-3xl md:text-5xl font-bold text-white">Pollution Aware Routing</h1>
-          <p className="text-gray-400 mt-2 md:mt-3 text-base md:text-lg">
+          <h1 className="text-3xl md:text-5xl font-bold" style={{ color: theme.text }}>Pollution Aware Routing</h1>
+          <p className="mt-2 md:mt-3 text-base md:text-lg" style={{ color: theme.muted }}>
             Find cleaner and safer travel routes.
           </p>
         </div>
@@ -110,12 +118,16 @@ const Topbar = ({
             <input
               type="text"
               placeholder="Source"
-              className="bg-[#232a2d] border border-[#2d3437] text-white px-4 py-3 rounded-xl outline-none w-full"
+              className="px-4 py-3 rounded-xl outline-none w-full transition duration-150"
+              style={{ background: theme.surface, border: `1px solid ${theme.card}`, color: theme.text }}
               value={source}
               onChange={handleSourceChange}
               onFocus={() => setActiveField("source")}
               onBlur={() => setTimeout(() => setActiveField(""), 150)}
             />
+            {sourceError && (
+              <p className="mt-1 text-sm" style={{ color: theme.danger }}>{sourceError}</p>
+            )}
             {renderSuggestions(sourceSugg, "source")}
           </div>
 
@@ -123,23 +135,55 @@ const Topbar = ({
             <input
               type="text"
               placeholder="Destination"
-              className="bg-[#232a2d] border border-[#2d3437] text-white px-4 py-3 rounded-xl outline-none w-full"
+              className="px-4 py-3 rounded-xl outline-none w-full transition duration-150"
+              style={{ background: theme.surface, border: `1px solid ${theme.card}`, color: theme.text }}
               value={destination}
               onChange={handleDestinationChange}
               onFocus={() => setActiveField("destination")}
               onBlur={() => setTimeout(() => setActiveField(""), 150)}
             />
+            {destinationError && (
+              <p className="mt-1 text-sm" style={{ color: theme.danger }}>{destinationError}</p>
+            )}
             {renderSuggestions(destinationSugg, "destination")}
           </div>
 
-          <button
-            type="button"
-            onClick={handleAnalyzeButton}
-            disabled={loading}
-            className="bg-[#8ccf7e] hover:bg-[#7bc56d] text-black font-semibold px-6 py-3 rounded-xl transition w-full sm:w-auto"
-          >
-            {loading ? "Analyzing..." : "Analyze Route"}
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center rounded-xl p-1" style={{ background: theme.surface, border: `1px solid ${theme.card}` }}>
+              <button
+                type="button"
+                onClick={() => setTransportMode("driving-car")}
+                className={`px-3 py-2 rounded-lg text-sm font-medium`}
+                style={transportMode === "driving-car" ? { background: theme.primary, color: '#000' } : { color: theme.text }}
+              >
+                Driving
+              </button>
+              <button
+                type="button"
+                onClick={() => setTransportMode("foot-walking")}
+                className={`px-3 py-2 rounded-lg text-sm font-medium`}
+                style={transportMode === "foot-walking" ? { background: theme.primary, color: '#000' } : { color: theme.text }}
+              >
+                Walking
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleAnalyzeButton(transportMode)}
+              disabled={loading}
+              className="bg-[#7fbbb3] hover:bg-[#6fb0a8] text-black font-semibold px-6 py-3 rounded-xl transition duration-150 w-full sm:w-auto flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <span className="loader-border inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" />
+                  <span>Analyzing...</span>
+                </>
+              ) : (
+                "Analyze Route"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

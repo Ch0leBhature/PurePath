@@ -56,7 +56,7 @@ const SavedRoutes = () => {
   return (
     <div className="min-h-screen bg-[#141b1e] text-white px-4 py-8 md:px-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-4xl font-bold">Saved Routes</h1>
             <p className="text-gray-400 mt-2">Viewing saved routes for the current user. Select any route to open it on the dashboard map.</p>
@@ -64,7 +64,8 @@ const SavedRoutes = () => {
           <button
             type="button"
             onClick={fetchRoutes}
-            className="rounded-2xl bg-[#8ccf7e] px-5 py-3 text-black font-semibold hover:bg-[#7bc56d] transition"
+            className="rounded-2xl px-5 py-3 text-black font-semibold transition"
+            style={{ background: '#7fbbb3', color: '#000' }}
           >
             Refresh
           </button>
@@ -78,8 +79,10 @@ const SavedRoutes = () => {
             {error}
           </div>
         ) : routes.length === 0 ? (
-          <div className="rounded-3xl border border-[#2d3437] bg-[#1b2225] p-8 text-center text-gray-300">
-            No saved routes yet. Save one from the dashboard to see it here.
+          <div className="rounded-3xl border border-[#2d3437] bg-[#232a2d] p-12 text-center text-[#d3c6aa]">
+            <div className="text-6xl mb-4 text-[#859289]">🗺️</div>
+            <h3 className="text-xl font-semibold mb-2">Saved routes will appear here.</h3>
+            <p className="text-sm text-[#859289]">Save routes from the dashboard to access them later.</p>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">

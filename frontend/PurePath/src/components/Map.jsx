@@ -21,24 +21,34 @@ import {
   Popup,
   useMap,
 } from "react-leaflet";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { getAqiColor } from "../utils/aqi";
+import theme from "../utils/theme";
 
-function Map({ routes = [] }) {
+function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
 
-  const source = routes[0]?.coordinates?.[0];
-
-  const destination =
-    routes[0]?.coordinates?.[
-      routes[0]?.coordinates?.length - 1
-    ];
+  const activeRoute = routes[activeRouteIndex] || routes[0];
+  const source = activeRoute?.coordinates?.[0];
+  const destination = activeRoute?.coordinates?.[
+    activeRoute?.coordinates?.length - 1
+  ];
 
   const defaultCenter = [28.6139, 77.2090];
+
+  const polylineRefs = useRef([]);
+
+  useEffect(() => {
+    const activeLayer = polylineRefs.current[activeRouteIndex];
+    try {
+      activeLayer?.bringToFront?.();
+    } catch (e) {}
+  }, [activeRouteIndex]);
 
   function MapUpdater({ routes }) {
     const map = useMap();
 
     useEffect(() => {
-      const coords = routes[0]?.coordinates;
+      const coords = activeRoute?.coordinates;
       if (coords && Array.isArray(coords) && coords.length > 0) {
         try {
           if (coords.length === 1) {
@@ -52,13 +62,13 @@ function Map({ routes = [] }) {
       } else {
         map.setView(defaultCenter, 12);
       }
-    }, [routes, map]);
+    }, [routes, activeRouteIndex, map]);
 
     return null;
   }
 
   return (
-    <div className="relative z-0 h-[520px] rounded-3xl overflow-hidden border border-[#2d3437]">
+    <div className="relative z-0 h-[520px] rounded-3xl overflow-visible" style={{ border: `1px solid ${theme.card}` }}>
       <MapContainer
         center={source || defaultCenter}
         zoom={12}
@@ -81,19 +91,65 @@ function Map({ routes = [] }) {
           </Marker>
         )}
 
-        {routes.map((route, index) => (
-          <Polyline
-            key={index}
-            positions={route.coordinates}
-            pathOptions={{
-              color: route.color,
-              weight: 8,
-            }}
-          />
-        ))}
+        {routes.map((route, index) => {
+          const isActive = index === activeRouteIndex;
+          return (
+            <Polyline
+              key={index}
+              ref={(el) => (polylineRefs.current[index] = el)}
+              positions={route.coordinates}
+              pathOptions={{
+                color: getAqiColor(route.avgAqi),
+                weight: isActive ? 8 : 4,
+                opacity: isActive ? 0.95 : 0.45,
+              }}
+              eventHandlers={{
+                click: (e) => {
+                  // bring clicked polyline to front and notify parent
+                  try {
+                    e?.target?.bringToFront?.();
+                  } catch (er) {}
+                  onRouteSelect?.(index);
+                },
+              }}
+            />
+          );
+        })}
+
       </MapContainer>
+
+      {/* AQI Legend overlay (sibling to Leaflet map) */}
+      <div
+        className="absolute right-4 bottom-4 z-[1000] max-w-[180px] rounded-lg p-2 text-sm shadow-lg"
+        style={{ pointerEvents: "auto", border: `1px solid ${theme.card}`, background: `${theme.background}E6`, color: theme.text }}
+      >
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(1) }} />
+            <span> Good</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(2) }} />
+            <span> Fair</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(3) }} />
+            <span> Moderate</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(4) }} />
+            <span> Poor</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(5) }} />
+            <span> Very Poor</span>
+          </div>
+        </div>
+      </div>
     </div>
+    
   );
 }
 
 export default Map;
+

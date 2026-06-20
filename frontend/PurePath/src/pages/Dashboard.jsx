@@ -4,7 +4,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import Map from "../components/Map";
 import RouteCards from "../components/RouteCards";
-import AiCard from "../components/AiCard";
+
 
 const Dashboard = ({
   sidebarOpen,
@@ -22,8 +22,15 @@ const Dashboard = ({
   destinationSugg,
   setDestinationSugg,
   routes,
+  activeRouteIndex,
+  setActiveRouteIndex,
   setRoutes,
   analyzeRoute,
+  sourceError,
+  destinationError,
+  clearSourceError,
+  clearDestinationError,
+  alternativesAvailable,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -75,19 +82,33 @@ const Dashboard = ({
           setSourceSugg={setSourceSugg}
           setDestinationSugg={setDestinationSugg}
           destinationSugg={destinationSugg}
+          sourceError={sourceError}
+          destinationError={destinationError}
+          clearSourceError={clearSourceError}
+          clearDestinationError={clearDestinationError}
         />
 
         {/* MAP + ROUTES */}
         <div className="grid grid-cols-1 xl:grid-cols-[3fr_1fr] gap-4 md:gap-6">
           {/* MAP */}
-          <Map routes={routes} />
+          <Map
+          routes={routes}
+          activeRouteIndex={activeRouteIndex}
+          onRouteSelect={setActiveRouteIndex}
+        />
 
           {/* ROUTE CARDS */}
-          <RouteCards routes={routes} onSave={handleSaveRoute} savingRoute={savingRoute} />
+          <RouteCards
+            routes={routes}
+            activeRouteIndex={activeRouteIndex}
+            onRouteSelect={setActiveRouteIndex}
+            onSave={handleSaveRoute}
+            savingRoute={savingRoute}
+              alternativesAvailable={alternativesAvailable}
+          />
         </div>
 
-        {/* AI CARD */}
-        <AiCard />
+        
       </main>
     </div>
 

@@ -13,9 +13,13 @@ import { useAuth } from "./contexts/AuthContext";
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
+  const [activeRouteIndex, setActiveRouteIndex] = useState(0);
+  const [alternativesAvailable, setAlternativesAvailable] = useState(true);
 
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
+  const [sourceError, setSourceError] = useState("");
+  const [destinationError, setDestinationError] = useState("");
   const [loading, setLoading] = useState(false);
   const [savingRoute, setSavingRoute] = useState(false);
   const [sourceSugg, setSourceSugg] = useState([]);
@@ -23,35 +27,61 @@ function App() {
 
   const navigate = useNavigate();
   const { user } = useAuth();
-  const analyzeRoute = async (source, destination) => {
-  try {
-    setLoading(true);
-    const srcCoords = await geoCodedData(source);
-    const destCoords = await geoCodedData(destination);
-    const data = await getRoute(srcCoords, destCoords);
+  const analyzeRoute = async (source, destination, mode = "driving-car") => {
+    try {
+      setLoading(true);
+      let srcCoords, destCoords;
+      try {
+        srcCoords = await geoCodedData(source);
+        setSourceError("");
+      } catch (err) {
+        setSourceError("Source location not found");
+        throw err;
+      }
 
-    if (data?.coordinates?.length) {
-      setRoutes([
-        {
-          aqi: data.avgAqi,
-          exposure: data.exposure,
-          color: data.color,
-          coordinates: data.coordinates,
-          source: source,
-          destination: destination,
-          distance: data.distance,
-          eta: data.eta,
-        },
-      ]);
+      try {
+        destCoords = await geoCodedData(destination);
+        setDestinationError("");
+      } catch (err) {
+        setDestinationError("Destination location not found");
+        throw err;
+      }
+      const data = await getRoute(srcCoords, destCoords, mode);
+
+      if (Array.isArray(data.routes) && data.routes.length) {
+        setAlternativesAvailable(data.alternativesAvailable !== false);
+        setRoutes(
+          data.routes.map((route) => ({
+            ...route,
+            source,
+            destination,
+            aqi: route.avgAqi,
+          }))
+        );
+        setActiveRouteIndex(0);
+      } else if (data?.coordinates?.length) {
+        setRoutes([
+          {
+            aqi: data.avgAqi,
+            exposure: data.exposure,
+            color: data.color,
+            coordinates: data.coordinates,
+            source: source,
+            destination: destination,
+            distance: data.distance,
+            eta: data.eta,
+          },
+        ]);
+        setActiveRouteIndex(0);
+      }
+    } catch (error) {
+      console.error("Error fetching routes:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching routes:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-  const handleAnalyzeButton = async () => {
-    await analyzeRoute(source,destination) 
+  };
+  const handleAnalyzeButton = async (mode) => {
+    await analyzeRoute(source, destination, mode);
   };
 
   const handleSaveRoute = async (route) => {
@@ -82,6 +112,8 @@ function App() {
               sidebarOpen={sidebarOpen}
               setSidebarOpen={setSidebarOpen}
               routes={routes}
+              activeRouteIndex={activeRouteIndex}
+              setActiveRouteIndex={setActiveRouteIndex}
               setRoutes={setRoutes}
               source={source}
               setSource={setSource}
@@ -95,6 +127,11 @@ function App() {
               setSourceSugg={setSourceSugg}
               destinationSugg={destinationSugg}
               setDestinationSugg={setDestinationSugg}
+              sourceError={sourceError}
+              destinationError={destinationError}
+              clearSourceError={() => setSourceError("")}
+              clearDestinationError={() => setDestinationError("")}
+              alternativesAvailable={alternativesAvailable}
               analyzeRoute={analyzeRoute}
             />
           }
