@@ -37,7 +37,7 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
         <div style="
           width:18px;
           height:18px;
-          background:#22c55e;
+          background:#34D399;
           border:3px solid white;
           border-radius:50%;
           box-shadow:0 0 10px rgba(0,0,0,0.4);
@@ -53,7 +53,7 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
       <div style="
         width:18px;
         height:18px;
-        background:#ef4444;
+        background:#F87171;
         border:3px solid white;
         border-radius:50%;
         box-shadow:0 0 10px rgba(0,0,0,0.4);
