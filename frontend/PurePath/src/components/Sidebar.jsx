@@ -55,30 +55,54 @@ const Sidebar = ({ isOpen, onClose }) => {
     </nav>
   </div>
 
-  {user && (
-    <button
-      type="button"
-      onClick={handleLogout}
-      className="
-        w-full
-        text-left
-        px-4
-        py-4
-        rounded-xl
-        font-medium
-        transition-all
-        duration-200
-        hover:translate-y-[-1px]
-      "
-      style={{
-        background: "#3a2b2b",
-        color: "#e67e80",
-        border: "1px solid #e67e80",
-      }}
-    >
-      Logout
-    </button>
-  )}
+  {user ? (
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="
+          w-full
+          text-left
+          px-4
+          py-4
+          rounded-xl
+          font-medium
+          transition-all
+          duration-200
+          hover:translate-y-[-1px]
+        "
+        style={{
+          background: "#3a2b2b",
+          color: "#e67e80",
+          border: "1px solid #e67e80",
+        }}
+      >
+        Logout
+      </button>
+    ) : (
+      <div className="flex flex-col gap-4 w-full">
+        <NavLink
+          to="/login"
+          className={({ isActive }) =>
+            (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+            "px-4 py-4 rounded-xl transition"
+          }
+          style={{ color: theme.text }}
+        >
+          Login
+        </NavLink>
+
+        <NavLink
+          to="/register"
+          className={({ isActive }) =>
+            (isActive ? "bg-[#232a2d] " : "hover:bg-[#232a2d] ") +
+            "px-4 py-4 rounded-xl transition"
+          }
+          style={{ color: theme.text }}
+        >
+          Register
+        </NavLink>
+      </div>
+    )}
 </aside>
 
       {/* Mobile Sidebar Overlay */}
