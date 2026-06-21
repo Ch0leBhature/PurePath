@@ -16,7 +16,7 @@ export const getSuggestions = async(query) =>{
     return res.data.features;
 
   }catch(err){
-    console.log(err);
+    // console.log(err);
     return [];
   }
 }

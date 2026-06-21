@@ -5,7 +5,7 @@ const getRoute = async (start, end, mode = "driving-car") => {
     const response = await apiClient.post("/api/route/api", { start, end, mode });
     return response.data;
   } catch (err) {
-    console.log("error in getting response from backend", err);
+    // console.log("error in getting response from backend", err);
     throw err;
   }
 };

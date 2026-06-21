@@ -8,13 +8,13 @@ const generateAccessAndRefreshTokens = async function(userId){
     const accessToken=user.generateAccessToken();
     const refreshToken=user.generateRefreshToken();
     user.refreshToken=refreshToken
-    console.log(
-      process.env.ACCESS_TOKEN_SECRET
-    );
+    // console.log(
+    //   process.env.ACCESS_TOKEN_SECRET
+    // );
 
-    console.log(
-      process.env.REFRESH_TOKEN_SECRET
-    ); 
+    // console.log(
+    //   process.env.REFRESH_TOKEN_SECRET
+    // ); 
     await user.save({validateBeforeSave:false})
     return {accessToken,refreshToken};
   }catch(error)
@@ -26,15 +26,15 @@ const generateAccessAndRefreshTokens = async function(userId){
 
 }
 
-//todo
-//1.get data from frontend, check for empty    *
-//2.check if already exists                    *
-//3.if not create it
-//4.remove password and refresh token from response
-//5.check for usr creation
-//6.return response
+// //todo
+// //1.get data from frontend, check for empty    *
+// //2.check if already exists                    *
+// //3.if not create it
+// //4.remove password and refresh token from response
+// //5.check for usr creation
+// //6.return response
 
-const registerUser = async function(req,res){
+const registerUser = async function(req,res){"
   try
   {
     const {username,email,password} = req.body;
@@ -71,7 +71,7 @@ const registerUser = async function(req,res){
 
   }catch(error)
   {
-    console.log("registration Error", error)
+    // console.log("registration Error", error)
     
     return res.status(500).json({
       message:"Internal Server Error"
@@ -80,18 +80,18 @@ const registerUser = async function(req,res){
   }
 }
 
-//take data from frontend
-//check for empty data
-//check the user exists or not
-//if found check password
-//if valid then generate tokens
-//make a user response remove pass and refresh tokens
-//send cookies
+// //take data from frontend
+// //check for empty data
+// //check the user exists or not
+// //if found check password
+// //if valid then generate tokens
+// //make a user response remove pass and refresh tokens
+// //send cookies
 
 const loginUser = async function(req,res) {
   try
   {
-    console.log("LOGIN HIT") 
+    // console.log("LOGIN HIT") 
     const {username,email,password}=req.body;
 
         
@@ -145,7 +145,7 @@ const loginUser = async function(req,res) {
     });
   }catch(error)
   {
-    console.log("login error",error);
+    // console.log("login error",error);
 
     return res.status(500).json({
       message:"Internal server error"
@@ -176,7 +176,7 @@ const logoutUser = async function(req, res) {
       .clearCookie("refreshToken", options)
       .json({ message: "User logged out successfully" });
   } catch (error) {
-    console.log("logout error", error);
+    // console.log("logout error", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

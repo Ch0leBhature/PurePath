@@ -14,7 +14,7 @@ const getAiqData = async (lat,lon)=>{
 
     return res.data
   }catch(err){
-    console.log("error fetching aiq data",err)
+    // console.log("error fetching aiq data",err)
     throw err;
   }
 }

@@ -9,17 +9,17 @@ configDotenv({
 connectDB()
   .then(()=>{
     const server = app.listen(process.env.PORT || 5000, () => {
-      console.log(`server is running on port - ${process.env.PORT}`);
+      // console.log(`server is running on port - ${process.env.PORT}`);
     })
     
     server.on("error",(error)=>{
-      console.log("SERVER ERR: ",error)
+      // console.log("SERVER ERR: ",error)
       process.exit(1)
     })
 
   })
 .catch((error) => {
-  console.log("MONGO DB CONNECTION ERROR !!!",error)
+  // console.log("MONGO DB CONNECTION ERROR !!!",error)
 })
 
 

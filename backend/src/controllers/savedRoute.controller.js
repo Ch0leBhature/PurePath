@@ -20,14 +20,14 @@ const saveRoute = async (req, res) => {
 
     return res.status(201).json(route);
   } catch (error) {
-    console.error("saveRoute error", error);
+    // console.error("saveRoute error", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const getRoutes = async (req, res) => {
   try {
-    console.log("helo");
+    // console.log("helo");
     const routes = await Route.find({
       user:req.user._id,
     }).sort({
@@ -35,7 +35,7 @@ const getRoutes = async (req, res) => {
     });
     return res.status(200).json(routes);
   } catch (error) {
-    console.error("getRoutes error", error);
+    // console.error("getRoutes error", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -59,7 +59,7 @@ const deleteRoute = async (req, res) => {
 
     return res.status(200).json({ message: "Route deleted successfully", route: deleted });
   } catch (error) {
-    console.error("deleteRoute error", error);
+    // console.error("deleteRoute error", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

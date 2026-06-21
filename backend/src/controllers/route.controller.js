@@ -8,7 +8,7 @@ const getRoute = async (req, res) => {
       return res.status(400).json({ message: "Invalid route coordinates" });
     }
 
-    console.log("getRoute called with", { start, end, mode });
+    // console.log("getRoute called with", { start, end, mode });
 
     const profile = mode || "driving-car";
     const data = await getLocData(start, end, profile);
@@ -17,14 +17,14 @@ const getRoute = async (req, res) => {
     
     //error handling for missing or malformed data from ORS
     if (!geoJsonCoords || !Array.isArray(geoJsonCoords) || geoJsonCoords.length === 0) {
-      console.error("No route coordinates returned from ORS", { data });
+      // console.error("No route coordinates returned from ORS", { data });
       return res.status(502).json({ message: "no route data returned from upstream service" });
     }
 
     
     const leafletCoords = geoJsonCoords.map(([lng, lat]) => [lat, lng]);
 
-    console.log("req.body: ", req.body)
+    // console.log("req.body: ", req.body)
 
     return res.status(200).json({ coordinates: leafletCoords });
   
@@ -34,7 +34,7 @@ const getRoute = async (req, res) => {
 
   } catch (err) {
     
-    console.error("getRoute error", err);
+    // console.error("getRoute error", err);
     
     return res.status(500).json({ message: "internal server error" });
   }
@@ -129,7 +129,7 @@ const getAqi = async (req,res) =>{
 
     return res.status(200).json({ routes, alternativesAvailable: alternativesAllowed });
   } catch (err) {
-    console.error("getAqi error", err);
+    // console.error("getAqi error", err);
     return res.status(500).json({ message: "internal server error" });
   }
 };

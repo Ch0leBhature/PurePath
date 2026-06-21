@@ -6,9 +6,9 @@ const registerUser = async (payload) => {
 };
 
 const loginUser = async (payload) => {
-  console.log("PAYLOAD SENT: ", payload);
+  // console.log("PAYLOAD SENT: ", payload);
   const response = await apiClient.post("/api/users/login", payload);
-  console.log("RESPONSE: ", response);
+  // console.log("RESPONSE: ", response);
   return response.data;
 };
 

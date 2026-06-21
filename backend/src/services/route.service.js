@@ -48,8 +48,8 @@ const getLocData = async (
 
     return response.data;
   } catch (err) {
-    console.log("ORS STATUS:", err.response?.status);
-    console.log("ORS DATA:", err.response?.data);
+    // console.log("ORS STATUS:", err.response?.status);
+    // console.log("ORS DATA:", err.response?.data);
     throw err;
   }};
 

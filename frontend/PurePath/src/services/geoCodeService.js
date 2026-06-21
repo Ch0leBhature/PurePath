@@ -14,7 +14,7 @@ const geoCodedData = async(place) =>{
       parseFloat(data[0].lat)
     ]
   }catch(err){
-    console.log("error in reverse geocoding",err)
+    // console.log("error in reverse geocoding",err)
     throw err;
   }
 }
