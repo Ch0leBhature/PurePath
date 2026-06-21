@@ -6,7 +6,7 @@ const STORAGE_KEY = "purepath_auth_user";
 
 const getStoredUser = () => {
   const stored = localStorage.getItem(STORAGE_KEY);
-  console.log("localStorage: ", stored);
+  // console.log("localStorage: ", stored);
   return stored ? JSON.parse(stored) : null;
 };
 
@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   const storeUser = (userData) => {
-    console.log("AuthContext storeUser:", userData);
+    // console.log("AuthContext storeUser:", userData);
     if (userData) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
     } else {
@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (credentials) => {
-    console.log("AuthContext credentials:", credentials);
+    // console.log("AuthContext credentials:", credentials);
     setLoading(true);
     setError(null);
     try {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
     try {
       await logoutUser();
     } catch (err) {
-      console.error("Logout error:", err);
+      // console.error("Logout error:", err);
     } finally {
       storeUser(null);
     }
