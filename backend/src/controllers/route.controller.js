@@ -88,7 +88,7 @@ const getAqi = async (req,res) =>{
 
         const aqiValues = await Promise.all(aqiPromises);
         const totalAqi = aqiValues.reduce((sum, value) => sum + value, 0);
-        const avgAqi = (aqiValues.length ? totalAqi / aqiValues.length : 0).toFixed(2);
+        const avgAqi = Math.floor((aqiValues.length ? totalAqi / aqiValues.length : 0)*100)/100;
 
         let exposure = "";
         let color = "";
