@@ -4,7 +4,7 @@ import theme from "../utils/theme";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
-  console.log("Sidebar render user:", user);
+  // console.log("Sidebar render user:", user);
 
   const handleLogout = async () => {
     await logout();
