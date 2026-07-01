@@ -34,7 +34,7 @@ const generateAccessAndRefreshTokens = async function(userId){
 // //5.check for usr creation
 // //6.return response
 
-const registerUser = async function(req,res){"
+const registerUser = async function(req,res){
   try
   {
     const {username,email,password} = req.body;

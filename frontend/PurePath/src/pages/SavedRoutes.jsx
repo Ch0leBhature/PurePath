@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import Sidebar from "../components/Sidebar";
 import { getSavedRoutes, deleteRoute } from "../services/savedRouteService";
 
 const SavedRoutes = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,22 +56,33 @@ const SavedRoutes = () => {
   }, []);
   
   return (
-    <div className="min-h-screen bg-[#141b1e] text-white px-4 py-8 md:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex min-h-screen bg-[#141b1e] text-white">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className="flex-1 px-4 py-8 md:px-8">
+        <div className="max-w-6xl mx-auto">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">Saved Routes</h1>
-            <p className="text-gray-400 mt-2">Viewing saved routes for the current user. Select any route to open it on the dashboard map.</p>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="text-white text-2xl md:hidden"
+              >
+                ☰
+              </button>
+              <div>
+                <h1 className="text-4xl font-bold">Saved Routes</h1>
+                <p className="text-gray-400 mt-2">Viewing saved routes for the current user. Select any route to open it on the dashboard map.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={fetchRoutes}
+              className="rounded-2xl px-5 py-3 text-black font-semibold transition"
+              style={{ background: '#7fbbb3', color: '#000' }}
+            >
+              Refresh
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={fetchRoutes}
-            className="rounded-2xl px-5 py-3 text-black font-semibold transition"
-            style={{ background: '#7fbbb3', color: '#000' }}
-          >
-            Refresh
-          </button>
-        </div>
         {loading ? (
           <div className="rounded-3xl border border-[#2d3437] bg-[#1b2225] p-8 text-center text-gray-300">
             Loading saved routes...
@@ -127,9 +140,10 @@ const SavedRoutes = () => {
           </div>
         )}
       </div>
+    </main>
     </div>
-  );
-};
+  )
 
+};
 export default SavedRoutes;
 
