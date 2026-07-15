@@ -9,10 +9,13 @@ const saveRoute = async (route) => {
   const payload = {
     source: route.src || route.source,
     destination: route.dest || route.destination,
-    aqi: route.aqi,
+    aqi: route.avgAqi ?? route.aqi,
     exposure: route.exposure,
     eta: route.eta,
     distance: route.distance,
+    coordinates: Array.isArray(route.coordinates)
+      ? route.coordinates
+      : undefined,
   };
 
   const response = await apiClient.post("/api/saved/save", payload);

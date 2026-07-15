@@ -15,6 +15,12 @@ function App() {
   const [routes, setRoutes] = useState([]);
   const [activeRouteIndex, setActiveRouteIndex] = useState(0);
   const [alternativesAvailable, setAlternativesAvailable] = useState(true);
+  const [preset, setPreset] = useState("balanced");
+  const [analysisMeta, setAnalysisMeta] = useState({
+    explanation: "",
+    presetLabel: "Balanced",
+    totalCandidates: 0,
+  });
 
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
@@ -24,9 +30,16 @@ function App() {
   const [savingRoute, setSavingRoute] = useState(false);
   const [sourceSugg, setSourceSugg] = useState([]);
   const [destinationSugg, setDestinationSugg] = useState([]);
+  const [notification, setNotification] = useState(null);
 
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const showNotification = (message, type = "info") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
+  };
+
   const analyzeRoute = async (source, destination, mode = "driving-car") => {
     try {
       setLoading(true);
@@ -46,20 +59,32 @@ function App() {
         setDestinationError("Destination location not found");
         throw err;
       }
-      const data = await getRoute(srcCoords, destCoords, mode);
+      const data = await getRoute(srcCoords, destCoords, mode, preset);
 
       if (Array.isArray(data.routes) && data.routes.length) {
         setAlternativesAvailable(data.alternativesAvailable !== false);
+        setAnalysisMeta({
+          explanation: data.explanation || "",
+          presetLabel: data.presetLabel || "Balanced",
+          totalCandidates: data.totalCandidates || data.routes.length,
+        });
         setRoutes(
           data.routes.map((route) => ({
             ...route,
             source,
             destination,
             aqi: route.avgAqi,
-          }))
+            analysisExplanation: data.explanation || "",
+            presetLabel: data.presetLabel || route.presetLabel || "Balanced",
+          })),
         );
         setActiveRouteIndex(0);
       } else if (data?.coordinates?.length) {
+        setAnalysisMeta({
+          explanation: "",
+          presetLabel: "Balanced",
+          totalCandidates: 1,
+        });
         setRoutes([
           {
             aqi: data.avgAqi,
@@ -70,12 +95,23 @@ function App() {
             destination: destination,
             distance: data.distance,
             eta: data.eta,
+            rank: 1,
+            presetLabel: "Balanced",
           },
         ]);
         setActiveRouteIndex(0);
       }
     } catch (error) {
       console.error("Error fetching routes:", error);
+      const backendMessage = error?.response?.data?.message;
+      const upstreamStatus = error?.response?.data?.upstreamStatus;
+      const details = upstreamStatus ? ` (upstream ${upstreamStatus})` : "";
+      showNotification(
+        backendMessage
+          ? `${backendMessage}${details}`
+          : "Unable to analyze route. Please try again.",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -93,17 +129,30 @@ function App() {
     try {
       setSavingRoute(true);
       await saveRoute(route);
-      alert("Route saved successfully.");
+      showNotification("Route saved successfully!", "success");
     } catch (error) {
       console.error("Error saving route:", error);
-      alert("Unable to save route. Please try again.");
+      showNotification("Unable to save route. Please try again.", "error");
     } finally {
       setSavingRoute(false);
     }
   };
 
   return (
-    <div>
+    <div className="min-h-screen">
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 px-6 py-3 rounded-xl text-white font-medium shadow-lg z-50 ${
+            notification.type === "success"
+              ? "bg-green-600"
+              : notification.type === "error"
+                ? "bg-red-600"
+                : "bg-blue-600"
+          }`}
+        >
+          {notification.message}
+        </div>
+      )}
       <Routes>
         <Route
           path="/"
@@ -133,6 +182,9 @@ function App() {
               clearDestinationError={() => setDestinationError("")}
               alternativesAvailable={alternativesAvailable}
               analyzeRoute={analyzeRoute}
+              preset={preset}
+              setPreset={setPreset}
+              analysisMeta={analysisMeta}
             />
           }
         />
@@ -146,7 +198,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace/>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );

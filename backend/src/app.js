@@ -21,7 +21,11 @@ app.get("/",(req,res)=>{
 import routeRouter from "./routes/route.Routes.js"
 import savedRouteRouter from "./routes/savedRoute.Routes.js"
 import userRouter from "./routes/user.routes.js"
+import aqiRouter from "./routes/aqi.routes.js"
+import analyticsRouter from "./routes/analytics.routes.js"
 app.use("/api/route", routeRouter)
 app.use("/api/saved", savedRouteRouter)
 app.use("/api/users",userRouter)
+app.use('/api/aqi', aqiRouter)
+app.use('/api/analytics', analyticsRouter)
 export {app}

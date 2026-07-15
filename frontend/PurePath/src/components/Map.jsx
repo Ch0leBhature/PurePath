@@ -1,8 +1,20 @@
 import L from "leaflet";
-
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import {
+  MapContainer,
+  TileLayer,
+  Polyline,
+  Marker,
+  Popup,
+  useMap,
+} from "react-leaflet";
+import { useEffect, useRef, useState } from "react";
+import wsClient from "../services/ws.client";
+import apiClient from "../services/apiClient";
+import { getAqiColor } from "../utils/aqi";
+import theme from "../utils/theme";
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -12,40 +24,52 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+const defaultCenter = [28.6139, 77.209];
 
-import {
-  MapContainer,
-  TileLayer,
-  Polyline,
-  Marker,
-  Popup,
-  useMap,
-} from "react-leaflet";
-import { useEffect, useRef } from "react";
-import { getAqiColor } from "../utils/aqi";
-import theme from "../utils/theme";
+function MapViewportSync({ coordinates }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (coordinates && Array.isArray(coordinates) && coordinates.length > 0) {
+      try {
+        if (coordinates.length === 1) {
+          map.setView(coordinates[0], 12);
+        } else {
+          map.fitBounds(coordinates, { padding: [40, 40] });
+        }
+      } catch (error) {
+        console.error("Map viewport sync error", error);
+      }
+    } else {
+      map.setView(defaultCenter, 12);
+    }
+  }, [coordinates, map]);
+
+  return null;
+}
 
 function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
-
   const activeRoute = routes[activeRouteIndex] || routes[0];
   const source = activeRoute?.coordinates?.[0];
-  const destination = activeRoute?.coordinates?.[
-    activeRoute?.coordinates?.length - 1
-  ];
+  const destination =
+    activeRoute?.coordinates?.[activeRoute?.coordinates?.length - 1];
+  const polylineRefs = useRef([]);
+  const [alerts, setAlerts] = useState([]);
+
   const sourceIcon = L.divIcon({
-      html: `
-        <div style="
-          width:18px;
-          height:18px;
-          background:#34D399;
-          border:3px solid white;
-          border-radius:50%;
-          box-shadow:0 0 10px rgba(0,0,0,0.4);
-        "></div>
-      `,
-      className: "",
-      iconSize: [18, 18],
-      iconAnchor: [12, 12],
+    html: `
+      <div style="
+        width:18px;
+        height:18px;
+        background:#34D399;
+        border:3px solid white;
+        border-radius:50%;
+        box-shadow:0 0 10px rgba(0,0,0,0.4);
+      "></div>
+    `,
+    className: "",
+    iconSize: [18, 18],
+    iconAnchor: [12, 12],
   });
 
   const destinationIcon = L.divIcon({
@@ -63,52 +87,66 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
     iconSize: [18, 18],
     iconAnchor: [12, 12],
   });
-  const defaultCenter = [28.6139, 77.2090];
-
-  const polylineRefs = useRef([]);
 
   useEffect(() => {
     const activeLayer = polylineRefs.current[activeRouteIndex];
-    try {
-      activeLayer?.bringToFront?.();
-    } catch (e) {}
+    activeLayer?.bringToFront?.();
   }, [activeRouteIndex]);
 
-  function MapUpdater({ routes }) {
-    const map = useMap();
+  useEffect(() => {
+    const active = routes[activeRouteIndex] || routes[0];
+    if (!active || !active.coordinates) return;
 
-    useEffect(() => {
-      const coords = activeRoute?.coordinates;
-      if (coords && Array.isArray(coords) && coords.length > 0) {
+    const sampleStep = Math.max(1, Math.floor(active.coordinates.length / 6));
+    const coords = active.coordinates.filter((_, i) => i % sampleStep === 0);
+    const subs = [];
+
+    coords.forEach((c) => {
+      const lat = Array.isArray(c) ? c[0] : c.lat;
+      const lng = Array.isArray(c) ? c[1] : c.lng;
+      const la = Number(lat).toFixed(4);
+      const ln = Number(lng).toFixed(4);
+      const channel = `aqi:channel:${la}:${ln}`;
+
+      const handler = (msg) => {
         try {
-          if (coords.length === 1) {
-            map.setView(coords[0], 12);
-          } else {
-            map.fitBounds(coords, { padding: [40, 40] });
-          }
-        } catch (e) {
-          console.error("MapUpdater error", e);
+          const parsed = typeof msg === "string" ? JSON.parse(msg) : msg;
+          setAlerts((state) => [...state.slice(-9), { ...parsed, channel }]);
+        } catch (error) {
+          console.warn(error);
         }
-      } else {
-        map.setView(defaultCenter, 12);
-      }
-    }, [routes, activeRouteIndex, map]);
+      };
 
-    
-    return null;
-  }
+      wsClient.subscribeChannel(channel, handler);
+      subs.push({ channel, handler });
+      apiClient
+        .post("/api/aqi/monitor", { lat: Number(la), lng: Number(ln) })
+        .catch(() => {});
+    });
+
+    return () => {
+      subs.forEach(({ channel, handler }) => {
+        wsClient.unsubscribeChannel(channel, handler);
+      });
+    };
+  }, [routes, activeRouteIndex]);
 
   return (
-    <div className="relative z-0 h-[520px] rounded-3xl overflow-visible" style={{ border: `1px solid ${theme.card}` }}>
+    <div
+      className="relative z-0 h-130 overflow-visible rounded-4xl transition-all duration-300 md:h-140"
+      style={{
+        border: `1px solid ${theme.card}`,
+        boxShadow: "0 18px 40px rgba(0,0,0,0.18)",
+        background: "rgba(16, 22, 26, 0.55)",
+      }}
+    >
       <MapContainer
         center={source || defaultCenter}
         zoom={12}
         className="h-full w-full"
       >
-        <MapUpdater routes={routes} />
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        />
+        <MapViewportSync coordinates={activeRoute?.coordinates} />
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
 
         {source && (
           <Marker position={source} icon={sourceIcon}>
@@ -126,8 +164,10 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
           const isActive = index === activeRouteIndex;
           return (
             <Polyline
-              key={index}
-              ref={(el) => (polylineRefs.current[index] = el)}
+              key={route.id || index}
+              ref={(el) => {
+                polylineRefs.current[index] = el;
+              }}
               positions={route.coordinates}
               pathOptions={{
                 color: getAqiColor(route.avgAqi),
@@ -135,11 +175,8 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
                 opacity: isActive ? 0.95 : 0.45,
               }}
               eventHandlers={{
-                click: (e) => {
-                  // bring clicked polyline to front and notify parent
-                  try {
-                    e?.target?.bringToFront?.();
-                  } catch (er) {}
+                click: (event) => {
+                  event?.target?.bringToFront?.();
                   onRouteSelect?.(index);
                 },
               }}
@@ -147,40 +184,75 @@ function Map({ routes = [], activeRouteIndex = 0, onRouteSelect }) {
           );
         })}
 
+        <div className="absolute left-4 top-4 z-1000 flex flex-col gap-2">
+          {alerts
+            .slice()
+            .reverse()
+            .map((alert, index) => (
+              <div
+                key={index}
+                className="rounded bg-white/90 p-2 text-xs shadow"
+              >
+                <div>
+                  <b>AQI</b>: {alert.newAqi} (was {alert.prevAqi})
+                </div>
+                <div className="text-xs">
+                  {new Date(alert.ts).toLocaleTimeString()}
+                </div>
+              </div>
+            ))}
+        </div>
       </MapContainer>
 
-      {/* AQI Legend overlay (sibling to Leaflet map) */}
       <div
-        className="absolute right-4 bottom-4 z-[1000] max-w-[180px] rounded-lg p-2 text-sm shadow-lg"
-        style={{ pointerEvents: "auto", border: `1px solid ${theme.card}`, background: `${theme.background}E6`, color: theme.text }}
+        className="absolute bottom-4 right-4 z-1000 max-w-45 rounded-lg p-2 text-sm shadow-lg"
+        style={{
+          pointerEvents: "auto",
+          border: `1px solid ${theme.card}`,
+          background: `${theme.background}E6`,
+          color: theme.text,
+        }}
       >
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(1) }} />
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ background: getAqiColor(1) }}
+            />
             <span> Good</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(2) }} />
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ background: getAqiColor(2) }}
+            />
             <span> Fair</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(3) }} />
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ background: getAqiColor(3) }}
+            />
             <span> Moderate</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(4) }} />
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ background: getAqiColor(4) }}
+            />
             <span> Poor</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: getAqiColor(5) }} />
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ background: getAqiColor(5) }}
+            />
             <span> Very Poor</span>
           </div>
         </div>
       </div>
     </div>
-    
   );
 }
 
 export default Map;
-
