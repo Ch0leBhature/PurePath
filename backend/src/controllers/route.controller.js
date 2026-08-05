@@ -1,5 +1,56 @@
 import { getLocData } from "../services/route.service.js";
 import { getAiqData } from "../services/aqi.service.js";
+
+const DEFAULT_AQI_SAMPLE_POINTS = Number(process.env.AQI_SAMPLE_POINTS || 8);
+const DEFAULT_TRAFFIC_SAMPLE_POINTS = Number(
+  process.env.TRAFFIC_SAMPLE_POINTS || 3,
+);
+
+function roundCoord(num, decimals = 4) {
+  return Number(Number(num).toFixed(decimals));
+}
+
+function sampleEvenly(coords, desiredNumber) {
+  if (!Array.isArray(coords) || coords.length === 0) return [];
+
+  const count = Math.max(1, Math.min(coords.length, desiredNumber));
+  if (count === 1) {
+    return [coords[0]];
+  }
+
+  const selected = [];
+  const seen = new Set();
+  for (let index = 0; index < count; index += 1) {
+    const coordIndex = Math.min(
+      coords.length - 1,
+      Math.round((index * (coords.length - 1)) / (count - 1)),
+    );
+    if (seen.has(coordIndex)) continue;
+    seen.add(coordIndex);
+    selected.push(coords[coordIndex]);
+  }
+
+  return selected;
+}
+
+function getSharedRankedCacheKey(start, end, mode, preset, targetCount) {
+  const origin = { lat: start[1], lng: start[0] };
+  const dest = { lat: end[1], lng: end[0] };
+  const routeFingerprint = `inputs:${targetCount}:${roundCoord(start[0])},${roundCoord(start[1])}:${roundCoord(end[0])},${roundCoord(end[1])}`;
+  return {
+    origin,
+    dest,
+    cacheKeyParts: [
+      mode || "driving-car",
+      origin,
+      dest,
+      routeFingerprint,
+      preset || "balanced",
+      "global",
+    ],
+  };
+}
+
 const getRoute = async (req, res) => {
   try {
     const { start, end, mode } = req.body;
@@ -86,6 +137,32 @@ const getAqi = async (req, res) => {
     // openrouteservice supports at most 3 alternative routes per request
     const candidateTargetCount = Math.min(3, Math.max(1, requestedTargetCount));
     const targetCount = alternativesAllowed ? candidateTargetCount : 1;
+    const { redis } = await import("../cache/redisClient.js");
+    const { rankedRouteKey } = await import("../cache/keys.js");
+    const preset = req.body.preset || "balanced";
+    const { cacheKeyParts } = getSharedRankedCacheKey(
+      start,
+      end,
+      profile,
+      preset,
+      targetCount,
+    );
+    const cacheKey = rankedRouteKey(...cacheKeyParts);
+
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          return res.status(200).json(parsed);
+        } catch (e) {
+          /* fallthrough */
+        }
+      }
+    } catch (e) {
+      /* ignore cache errors */
+    }
+
     const data = await getLocData(start, end, profile, targetCount);
 
     const features = Array.isArray(data.features) ? data.features : [];
@@ -95,6 +172,8 @@ const getAqi = async (req, res) => {
         .json({ message: "no route data returned from upstream service" });
     }
 
+    const aqiPromiseCache = new Map();
+
     const routes = await Promise.all(
       features.map(async (feature) => {
         const geoJsonCoords = feature.geometry?.coordinates;
@@ -103,14 +182,9 @@ const getAqi = async (req, res) => {
         }
 
         const leafletCoords = geoJsonCoords.map(([lng, lat]) => [lat, lng]);
-        const desiredNumber = 30;
-        const step = Math.max(
-          1,
-          Math.ceil(leafletCoords.length / desiredNumber),
-        );
-
-        const sampleCoords = leafletCoords.filter(
-          (_, item) => item % step === 0,
+        const sampleCoords = sampleEvenly(
+          leafletCoords,
+          DEFAULT_AQI_SAMPLE_POINTS,
         );
         const pollutantKeys = [
           "pm2_5",
@@ -125,12 +199,20 @@ const getAqi = async (req, res) => {
         const sampleReadings = await Promise.all(
           sampleCoords.map(async (coords) => {
             const [lat, lon] = coords;
-            const aqiPayload = await getAiqData(lat, lon);
-            const reading = aqiPayload?.data?.list?.[0] || null;
-            return {
-              aqi: reading?.main?.aqi ?? null,
-              components: reading?.components || null,
-            };
+            const cacheToken = `${roundCoord(lat)}:${roundCoord(lon)}`;
+            if (!aqiPromiseCache.has(cacheToken)) {
+              aqiPromiseCache.set(
+                cacheToken,
+                getAiqData(lat, lon).then((aqiPayload) => {
+                  const reading = aqiPayload?.data?.list?.[0] || null;
+                  return {
+                    aqi: reading?.main?.aqi ?? null,
+                    components: reading?.components || null,
+                  };
+                }),
+              );
+            }
+            return aqiPromiseCache.get(cacheToken);
           }),
         );
 
@@ -211,46 +293,15 @@ const getAqi = async (req, res) => {
       }),
     );
 
-    // Attempt to load ranked response from cache
-    const { redis } = await import("../cache/redisClient.js");
-    const { rankedRouteKey } = await import("../cache/keys.js");
-    const origin = { lat: start[1], lng: start[0] };
-    const dest = { lat: end[1], lng: end[0] };
-    const routeIdsHash =
-      routes.map((r) => r.id || "").join("|") || String(routes.length);
-    const preset = req.body.preset || "balanced";
-    const userPrefsHash = "global";
-    const cacheKey = rankedRouteKey(
-      "default",
-      origin,
-      dest,
-      routeIdsHash,
-      preset,
-      userPrefsHash,
-    );
-    try {
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          return res.status(200).json(parsed);
-        } catch (e) {
-          /* fallthrough */
-        }
-      }
-    } catch (e) {
-      /* ignore cache errors */
-    }
-
     // fetch traffic multipliers for sampled points per route
     const { getTrafficMultiplier } =
       await import("../services/traffic.service.js");
     await Promise.all(
       routes.map(async (r) => {
         try {
-          const pts = r.coordinates.slice(
-            0,
-            Math.max(1, Math.floor(r.coordinates.length / 6)),
+          const pts = sampleEvenly(
+            r.coordinates,
+            DEFAULT_TRAFFIC_SAMPLE_POINTS,
           );
           const mults = await Promise.all(
             pts.map(async (c) => {

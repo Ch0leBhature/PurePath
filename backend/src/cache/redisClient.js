@@ -34,7 +34,7 @@ redis.on("error", (err) => {
   }
 });
 redis.on("connect", () => console.log("Redis connected"));
-// increase per-client limit
+// increase per-client limit {redundant}
 if (typeof redis.setMaxListeners === "function") {
   try {
     redis.setMaxListeners(Number(process.env.NODE_EVENT_MAX_LISTENERS || 20));
